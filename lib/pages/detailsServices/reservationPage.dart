@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:reservation_service/pages/details/reservation.dart'; // Assurez-vous que l'importation est correcte
+import 'package:flutter/services.dart';
+import 'reservationListPage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class ReservationPage extends StatefulWidget {
   final String restaurantName;
 
-  const ReservationPage({super.key, required this.restaurantName});
+  const ReservationPage({Key? key, required this.restaurantName})
+      : super(key: key);
 
   @override
   _ReservationPageState createState() => _ReservationPageState();
@@ -15,11 +19,8 @@ class _ReservationPageState extends State<ReservationPage> {
   String phone = '';
   String? selectedDate;
   String? selectedTime;
-  int numberOfPeople = 2; // Par défaut, table pour 2 personnes
-
-  final GlobalKey<FormState> _formKey =
-      GlobalKey<FormState>(); // Clé pour le formulaire
-  bool reservationConfirmed = false; // État de la réservation
+  int numberOfPeople = 2;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +33,7 @@ class _ReservationPageState extends State<ReservationPage> {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Form(
-            key: _formKey, // Formulaire avec clé
+            key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -44,44 +45,21 @@ class _ReservationPageState extends State<ReservationPage> {
                       color: Color(0xFF00796B)),
                 ),
                 const SizedBox(height: 16),
-
-                // Champ de texte pour le nom
                 _buildNameField(),
                 const SizedBox(height: 20),
-                // Champ de texte pour le téléphone
                 _buildPhoneField(),
                 const SizedBox(height: 20),
-                // Sélecteur de date
                 _buildDatePicker(),
                 const SizedBox(height: 20),
-                // Sélecteur d'heure
                 _buildTimePicker(),
                 const SizedBox(height: 20),
-                // Champ de texte pour le nombre de personnes
                 _buildNumberOfPeopleField(),
                 const SizedBox(height: 20),
-
-                // Bouton de confirmation
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        // Créer la nouvelle réservation
-
-                        // Afficher un message de confirmation
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                                'Réservation confirmée pour ${widget.restaurantName} !'),
-                          ),
-                        );
-
-                        // Mettre à jour l'état de réservation confirmée
-                        setState(() {
-                          reservationConfirmed = true;
-                        });
-
-                        // Optionnel: Vous pouvez garder la réservation ici si vous le souhaitez
+                        _saveReservation();
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -89,50 +67,13 @@ class _ReservationPageState extends State<ReservationPage> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 16, horizontal: 32),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
+                          borderRadius: BorderRadius.circular(30)),
                       elevation: 5,
                     ),
-                    child: const Text(
-                      'Confirmer la réservation',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
+                    child: const Text('Confirmer la réservation',
+                        style: TextStyle(fontSize: 18, color: Colors.white)),
                   ),
                 ),
-
-                // Afficher le bouton "Voir mes réservations" si la réservation est confirmée
-                if (reservationConfirmed)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: Center(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Naviguer vers la page de liste des réservations
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ReservationListPage(
-                                reservations: [],
-                              ),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00796B),
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 16, horizontal: 32),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          elevation: 5,
-                        ),
-                        child: const Text(
-                          'Voir mes réservations',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -141,148 +82,148 @@ class _ReservationPageState extends State<ReservationPage> {
     );
   }
 
-  Widget _buildDatePicker() {
-    return GestureDetector(
-      onTap: () async {
-        final DateTime? picked = await showDatePicker(
-          context: context,
-          initialDate: DateTime.now(),
-          firstDate: DateTime.now(),
-          lastDate: DateTime(2101),
-        );
-        if (picked != null && picked != DateTime.now()) {
-          setState(() {
-            selectedDate = "${picked.toLocal()}".split(' ')[0];
-          });
-        }
-      },
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                selectedDate ?? "Sélectionnez une date",
-                style: const TextStyle(fontSize: 18, color: Colors.black54),
-              ),
-              const Icon(Icons.calendar_today, color: Color(0xFF00796B)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  void _saveReservation() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> reservations = prefs.getStringList('reservations') ?? [];
 
-  Widget _buildTimePicker() {
-    return GestureDetector(
-      onTap: () async {
-        TimeOfDay? picked = await showTimePicker(
-          context: context,
-          initialTime: TimeOfDay.now(),
-        );
-        if (picked != null) {
-          setState(() {
-            selectedTime = picked.format(context);
-          });
-        }
-      },
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                selectedTime ?? "Sélectionnez une heure",
-                style: const TextStyle(fontSize: 18, color: Colors.black54),
-              ),
-              const Icon(Icons.access_time, color: Color(0xFF00796B)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+    try {
+      Map<String, String> newReservation = {
+        'service': widget.restaurantName,
+        'date': selectedDate ?? '',
+        'time': selectedTime ?? '',
+        'details': 'Pour $numberOfPeople personne(s)',
+        'name': name,
+        'phone': phone,
+      };
 
-  Widget _buildNumberOfPeopleField() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: TextFormField(
-          decoration: const InputDecoration(
-            labelText: "Nombre de personnes",
-            border: OutlineInputBorder(),
-          ),
-          keyboardType: TextInputType.number,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Veuillez entrer le nombre de personnes'; // Message d'erreur
-            }
-            return null; // Pas d'erreur
-          },
-          onChanged: (value) {
-            numberOfPeople = int.tryParse(value) ?? 2; // Par défaut 2
-          },
+      reservations.add(json.encode(newReservation));
+      await prefs.setStringList('reservations', reservations);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Réservation confirmée pour ${widget.restaurantName} !'),
         ),
-      ),
-    );
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              ReservationListPage(initialReservations: reservations),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de la sauvegarde de la réservation: $e'),
+        ),
+      );
+    }
   }
 
   Widget _buildNameField() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: TextFormField(
-          decoration: const InputDecoration(
-            labelText: "Nom",
-            border: OutlineInputBorder(),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Veuillez entrer votre nom'; // Message d'erreur
-            }
-            return null; // Pas d'erreur
-          },
-          onChanged: (value) {
-            name = value; // Mettre à jour le nom
-          },
-        ),
-      ),
+    return TextFormField(
+      decoration: const InputDecoration(labelText: 'Nom'),
+      validator: (value) =>
+          value == null || value.isEmpty ? 'Veuillez entrer votre nom' : null,
+      onChanged: (value) => setState(() {
+        name = value;
+      }),
     );
   }
 
   Widget _buildPhoneField() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: TextFormField(
-          decoration: const InputDecoration(
-            labelText: "Téléphone",
-            border: OutlineInputBorder(),
-          ),
-          keyboardType: TextInputType.phone,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Veuillez entrer votre numéro de téléphone'; // Message d'erreur
+    return TextFormField(
+      decoration: const InputDecoration(labelText: 'Téléphone'),
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Veuillez entrer votre numéro de téléphone';
+        } else if (value.length < 8 || value.length > 15) {
+          return 'Veuillez entrer un numéro de téléphone valide (8-15 chiffres)';
+        }
+        return null;
+      },
+      onChanged: (value) => setState(() {
+        phone = value;
+      }),
+    );
+  }
+
+  Widget _buildDatePicker() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text("Date :", style: TextStyle(fontSize: 18)),
+        Text(selectedDate ?? "Aucune date sélectionnée"),
+        ElevatedButton(
+          onPressed: () async {
+            DateTime? pickedDate = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime.now(),
+              lastDate: DateTime(2101),
+            );
+            if (pickedDate != null) {
+              setState(() {
+                selectedDate =
+                    "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+              });
             }
-            return null; // Pas d'erreur
           },
+          child: const Text('Choisir une date'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimePicker() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text("Heure :", style: TextStyle(fontSize: 18)),
+        Text(selectedTime ?? "Aucune heure sélectionnée"),
+        ElevatedButton(
+          onPressed: () async {
+            TimeOfDay? pickedTime = await showTimePicker(
+              context: context,
+              initialTime: TimeOfDay.now(),
+            );
+            if (pickedTime != null) {
+              setState(() {
+                selectedTime =
+                    "${pickedTime.hour}:${pickedTime.minute.toString().padLeft(2, '0')}";
+              });
+            }
+          },
+          child: const Text('Choisir une heure'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNumberOfPeopleField() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text("Nombre de personnes :"),
+        DropdownButton<int>(
+          value: numberOfPeople,
+          items: List.generate(10, (index) => index + 1)
+              .map((value) => DropdownMenuItem<int>(
+                    value: value,
+                    child: Text(value.toString()),
+                  ))
+              .toList(),
           onChanged: (value) {
-            phone = value; // Mettre à jour le téléphone
+            setState(() {
+              numberOfPeople = value!;
+            });
           },
         ),
-      ),
+      ],
     );
   }
 }

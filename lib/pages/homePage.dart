@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:reservation_service/LoginScreen.dart';
 import 'package:reservation_service/pages/SousService/restaurantPage.dart';
+import 'package:reservation_service/pages/SousService/screenSante.dart';
 import 'package:reservation_service/pages/details/hotelPage.dart';
 import 'package:reservation_service/pages/details/profil.dart';
-import 'package:reservation_service/pages/details/reservation.dart';
-import 'package:reservation_service/pages/resultPage.dart';
+import 'package:reservation_service/pages/detailsServices/reservationListPage.dart';
+// Import de HealthPage
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -16,14 +16,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
-  // Liste des services avec image et label
   final List<Map<String, String>> services = [
     {'image': 'images/cut.jpeg', 'label': 'Salons de coiffure'},
     {'image': 'images/restaurant1.jpeg', 'label': 'Restaurants'},
     {'image': 'images/hotel1.jpeg', 'label': 'Hôtels'},
     {'image': 'images/concert.jpg', 'label': 'Concerts'},
     {'image': 'images/nettoyage.jpeg', 'label': 'Nettoyage'},
-    {'image': 'images/sante.jpeg', 'label': 'Santé'},
+    {'image': 'images/sante.jpeg', 'label': 'Santé'}, // Catégorie Santé
+    {'image': 'images/reservations.jpeg', 'label': 'Mes Réservations'},
   ];
 
   List<Map<String, String>> filteredServices = [];
@@ -52,35 +52,42 @@ class _HomePageState extends State<HomePage> {
       _selectedIndex = index;
     });
 
-    if (index == 2) {
+    if (index == 1) {
       Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const ProfilePage()),
-      );
-    } else if (index == 1) {
+          context,
+          MaterialPageRoute(
+              builder: (context) => ReservationListPage(
+                    initialReservations: [],
+                  )));
+    } else if (index == 2) {
       Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => const ReservationListPage(reservations: [])),
-      );
+          context, MaterialPageRoute(builder: (context) => ProfilePage()));
     }
   }
 
   void _navigateToService(String label) {
     if (label == 'Restaurants') {
       Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => RestaurantPage()),
-      );
+          context, MaterialPageRoute(builder: (context) => RestaurantPage()));
     } else if (label == 'Hôtels') {
       Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => HotelPage()),
-      );
+          context, MaterialPageRoute(builder: (context) => HotelPage()));
+    } else if (label == 'Santé') {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  HealthPage())); // Navigation vers HealthPage
+    } else if (label == 'Mes Réservations') {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ReservationListPage(
+                    initialReservations: [],
+                  )));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vous avez sélectionné $label')),
-      );
+          SnackBar(content: Text('Vous avez sélectionné $label')));
     }
   }
 
@@ -90,167 +97,69 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('ServHubX'),
         backgroundColor: const Color(0xFF00796B),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // Supposons que vous ayez une fonction `showSearchDialog` dans un autre fichier
-              SearchService.showSearchDialog(context, _filterServices);
-            },
+      ),
+      body: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text("Bienvenue dans ServHubX!",
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF00796B))),
           ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
-              if (value == 'paramètre') {
-                // Logique pour les paramètres
-              } else if (value == 'About') {
-                _showAboutDialog(context);
-              } else if (value == 'Déconnexion') {
-                _logOut(context);
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return {'paramètre', 'About', 'Déconnexion'}.map((String choice) {
-                return PopupMenuItem<String>(
-                  value: choice,
-                  child: Text(choice),
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(8.0),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8.0,
+                mainAxisSpacing: 8.0,
+              ),
+              itemCount: filteredServices.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () =>
+                      _navigateToService(filteredServices[index]['label']!),
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15)),
+                    child: Column(
+                      children: [
+                        Expanded(
+                            child: Image.asset(
+                                filteredServices[index]['image']!,
+                                fit: BoxFit.cover)),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(filteredServices[index]['label']!,
+                              style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF00796B))),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
-              }).toList();
-            },
+              },
+            ),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Center(
-              child: Text(
-                'Catégories de services',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                childAspectRatio: 3 / 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                children: filteredServices.map((service) {
-                  return _buildCategoryCard(
-                      service['image']!, service['label']!, context);
-                }).toList(),
-              ),
-            ),
-          ],
-        ),
-      ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.book), label: 'Réservations'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
+              icon: Icon(Icons.book_online), label: 'Réservations'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle), label: 'Profil'),
         ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: const Color(0xFF00796B),
         onTap: _onItemTapped,
       ),
-    );
-  }
-
-  Widget _buildCategoryCard(
-      String imagePath, String label, BuildContext context) {
-    return InkWell(
-      onTap: () {
-        _navigateToService(label);
-      },
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Image.asset(
-                  imagePath,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  color: Colors.black.withOpacity(0.6),
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showAboutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('À propos'),
-          content: const Text(
-              'Cette application vous permet de réserver divers services.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Fermer'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _logOut(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Déconnexion'),
-          content: const Text('Voulez-vous vraiment vous déconnecter ?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Non'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                );
-              },
-              child: const Text('Oui'),
-            ),
-          ],
-        );
-      },
     );
   }
 }
