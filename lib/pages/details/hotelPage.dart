@@ -40,7 +40,7 @@ class HotelPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Hôtels'),
-        backgroundColor: const Color.fromARGB(255, 101, 140, 212),
+        backgroundColor:  const Color(0xFF00796B),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
