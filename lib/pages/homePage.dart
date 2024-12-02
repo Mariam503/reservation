@@ -5,10 +5,6 @@ import 'package:reservation_service/pages/SousService/screenSante.dart';
 import 'package:reservation_service/pages/details/hotelPage.dart';
 import 'package:reservation_service/pages/details/profil.dart';
 import 'package:reservation_service/pages/detailsServices/reservationListPage.dart';
-<<<<<<< HEAD
-// Import de CleaningPage
-=======
->>>>>>> 60066bee6f2b97e9ce4c30a860102a5d05d27918
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -19,7 +15,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-
   final Color _primaryColor = const Color(0xFF00796B);
 
   final List<Map<String, String>> services = [
@@ -27,10 +22,7 @@ class _HomePageState extends State<HomePage> {
     {'image': 'images/restaurant1.jpeg', 'label': 'Restaurants'},
     {'image': 'images/hotel1.jpeg', 'label': 'Hôtels'},
     {'image': 'images/concert.jpg', 'label': 'Concerts'},
-    {
-      'image': 'images/nettoyage.jpeg',
-      'label': 'Nettoyage'
-    }, // Service Nettoyage
+    {'image': 'images/nettoyage.jpeg', 'label': 'Nettoyage'},
     {'image': 'images/sante.jpeg', 'label': 'Santé'},
     {'image': 'images/reservations.jpeg', 'label': 'Mes Réservations'},
   ];
@@ -64,15 +56,8 @@ class _HomePageState extends State<HomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-<<<<<<< HEAD
-              builder: (context) => const ReservationListPage(
-                    initialReservations: [],
-                  )));
-    } else if (index == 2) {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => ProfilePage()));
-=======
-            builder: (context) => ReservationListPage(initialReservations: []),
+            builder: (context) =>
+                const ReservationListPage(initialReservations: []),
           ),
         );
         break;
@@ -82,35 +67,10 @@ class _HomePageState extends State<HomePage> {
           MaterialPageRoute(builder: (context) => const ProfilePage()),
         );
         break;
->>>>>>> 60066bee6f2b97e9ce4c30a860102a5d05d27918
     }
   }
 
   void _navigateToService(String label) {
-<<<<<<< HEAD
-    if (label == 'Restaurants') {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => RestaurantPage()));
-    } else if (label == 'Hôtels') {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => HotelPage()));
-    } else if (label == 'Santé') {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => HealthPage()));
-    } else if (label == 'Nettoyage') {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => NettoyagePage()));
-    } else if (label == 'Mes Réservations') {
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => const ReservationListPage(
-                    initialReservations: [],
-                  )));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Vous avez sélectionné $label')));
-=======
     Widget page;
     switch (label) {
       case 'Restaurants':
@@ -122,6 +82,9 @@ class _HomePageState extends State<HomePage> {
       case 'Santé':
         page = HealthPage();
         break;
+      case 'Nettoyage':
+        page = NettoyagePage();
+        break;
       case 'Mes Réservations':
         page = ReservationListPage(initialReservations: []);
         break;
@@ -130,7 +93,6 @@ class _HomePageState extends State<HomePage> {
           SnackBar(content: Text('Vous avez sélectionné $label')),
         );
         return;
->>>>>>> 60066bee6f2b97e9ce4c30a860102a5d05d27918
     }
     Navigator.push(context, MaterialPageRoute(builder: (context) => page));
   }
@@ -185,17 +147,10 @@ class _HomePageState extends State<HomePage> {
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
                             filteredServices[index]['label']!,
-<<<<<<< HEAD
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF00796B),
-=======
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: _primaryColor,
->>>>>>> 60066bee6f2b97e9ce4c30a860102a5d05d27918
                             ),
                           ),
                         ),
