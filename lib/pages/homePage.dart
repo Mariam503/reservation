@@ -5,7 +5,10 @@ import 'package:reservation_service/pages/SousService/screenSante.dart';
 import 'package:reservation_service/pages/details/hotelPage.dart';
 import 'package:reservation_service/pages/details/profil.dart';
 import 'package:reservation_service/pages/detailsServices/reservationListPage.dart';
+<<<<<<< HEAD
 // Import de CleaningPage
+=======
+>>>>>>> 60066bee6f2b97e9ce4c30a860102a5d05d27918
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -16,6 +19,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+
+  final Color _primaryColor = const Color(0xFF00796B);
 
   final List<Map<String, String>> services = [
     {'image': 'images/cut.jpeg', 'label': 'Salons de coiffure'},
@@ -54,20 +59,35 @@ class _HomePageState extends State<HomePage> {
       _selectedIndex = index;
     });
 
-    if (index == 1) {
-      Navigator.push(
+    switch (index) {
+      case 1:
+        Navigator.push(
           context,
           MaterialPageRoute(
+<<<<<<< HEAD
               builder: (context) => const ReservationListPage(
                     initialReservations: [],
                   )));
     } else if (index == 2) {
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => ProfilePage()));
+=======
+            builder: (context) => ReservationListPage(initialReservations: []),
+          ),
+        );
+        break;
+      case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfilePage()),
+        );
+        break;
+>>>>>>> 60066bee6f2b97e9ce4c30a860102a5d05d27918
     }
   }
 
   void _navigateToService(String label) {
+<<<<<<< HEAD
     if (label == 'Restaurants') {
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => RestaurantPage()));
@@ -90,7 +110,29 @@ class _HomePageState extends State<HomePage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Vous avez sélectionné $label')));
+=======
+    Widget page;
+    switch (label) {
+      case 'Restaurants':
+        page = RestaurantPage();
+        break;
+      case 'Hôtels':
+        page = HotelPage();
+        break;
+      case 'Santé':
+        page = HealthPage();
+        break;
+      case 'Mes Réservations':
+        page = ReservationListPage(initialReservations: []);
+        break;
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Vous avez sélectionné $label')),
+        );
+        return;
+>>>>>>> 60066bee6f2b97e9ce4c30a860102a5d05d27918
     }
+    Navigator.push(context, MaterialPageRoute(builder: (context) => page));
   }
 
   @override
@@ -98,7 +140,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('ServHubX'),
-        backgroundColor: const Color(0xFF00796B),
+        backgroundColor: _primaryColor,
       ),
       body: Column(
         children: [
@@ -129,7 +171,8 @@ class _HomePageState extends State<HomePage> {
                   child: Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15)),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
                     child: Column(
                       children: [
                         Expanded(
@@ -142,10 +185,17 @@ class _HomePageState extends State<HomePage> {
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
                             filteredServices[index]['label']!,
+<<<<<<< HEAD
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF00796B),
+=======
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: _primaryColor,
+>>>>>>> 60066bee6f2b97e9ce4c30a860102a5d05d27918
                             ),
                           ),
                         ),
@@ -167,7 +217,7 @@ class _HomePageState extends State<HomePage> {
               icon: Icon(Icons.account_circle), label: 'Profil'),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: const Color(0xFF00796B),
+        selectedItemColor: _primaryColor,
         onTap: _onItemTapped,
       ),
     );

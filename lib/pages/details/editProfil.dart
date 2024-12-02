@@ -45,7 +45,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Modifier le Profil'),
-        backgroundColor: const Color.fromARGB(255, 101, 140, 212),
+        backgroundColor:  const Color(0xFF00796B),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -114,7 +114,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 },
                 child: const Text('Enregistrer les modifications'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 101, 140, 212),
+                  backgroundColor:  const Color(0xFF00796B),
                 ),
               ),
             ],
