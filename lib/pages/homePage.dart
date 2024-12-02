@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:reservation_service/pages/SousService/restaurantPage.dart';
+import 'package:reservation_service/pages/SousService/screenNettoyage.dart';
 import 'package:reservation_service/pages/SousService/screenSante.dart';
 import 'package:reservation_service/pages/details/hotelPage.dart';
 import 'package:reservation_service/pages/details/profil.dart';
 import 'package:reservation_service/pages/detailsServices/reservationListPage.dart';
-// Import de HealthPage
+// Import de CleaningPage
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -21,8 +22,11 @@ class _HomePageState extends State<HomePage> {
     {'image': 'images/restaurant1.jpeg', 'label': 'Restaurants'},
     {'image': 'images/hotel1.jpeg', 'label': 'Hôtels'},
     {'image': 'images/concert.jpg', 'label': 'Concerts'},
-    {'image': 'images/nettoyage.jpeg', 'label': 'Nettoyage'},
-    {'image': 'images/sante.jpeg', 'label': 'Santé'}, // Catégorie Santé
+    {
+      'image': 'images/nettoyage.jpeg',
+      'label': 'Nettoyage'
+    }, // Service Nettoyage
+    {'image': 'images/sante.jpeg', 'label': 'Santé'},
     {'image': 'images/reservations.jpeg', 'label': 'Mes Réservations'},
   ];
 
@@ -36,14 +40,12 @@ class _HomePageState extends State<HomePage> {
 
   void _filterServices(String query) {
     setState(() {
-      if (query.isEmpty) {
-        filteredServices = services;
-      } else {
-        filteredServices = services
-            .where((service) =>
-                service['label']!.toLowerCase().contains(query.toLowerCase()))
-            .toList();
-      }
+      filteredServices = query.isEmpty
+          ? services
+          : services
+              .where((service) =>
+                  service['label']!.toLowerCase().contains(query.toLowerCase()))
+              .toList();
     });
   }
 
@@ -56,7 +58,7 @@ class _HomePageState extends State<HomePage> {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ReservationListPage(
+              builder: (context) => const ReservationListPage(
                     initialReservations: [],
                   )));
     } else if (index == 2) {
@@ -74,15 +76,15 @@ class _HomePageState extends State<HomePage> {
           context, MaterialPageRoute(builder: (context) => HotelPage()));
     } else if (label == 'Santé') {
       Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  HealthPage())); // Navigation vers HealthPage
+          context, MaterialPageRoute(builder: (context) => HealthPage()));
+    } else if (label == 'Nettoyage') {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => NettoyagePage()));
     } else if (label == 'Mes Réservations') {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ReservationListPage(
+              builder: (context) => const ReservationListPage(
                     initialReservations: [],
                   )));
     } else {
@@ -102,11 +104,14 @@ class _HomePageState extends State<HomePage> {
         children: [
           const Padding(
             padding: EdgeInsets.all(8.0),
-            child: Text("Bienvenue dans ServHubX!",
-                style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF00796B))),
+            child: Text(
+              "Bienvenue dans ServHubX!",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF00796B),
+              ),
+            ),
           ),
           Expanded(
             child: GridView.builder(
@@ -128,16 +133,21 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       children: [
                         Expanded(
-                            child: Image.asset(
-                                filteredServices[index]['image']!,
-                                fit: BoxFit.cover)),
+                          child: Image.asset(
+                            filteredServices[index]['image']!,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text(filteredServices[index]['label']!,
-                              style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF00796B))),
+                          child: Text(
+                            filteredServices[index]['label']!,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF00796B),
+                            ),
+                          ),
                         ),
                       ],
                     ),
