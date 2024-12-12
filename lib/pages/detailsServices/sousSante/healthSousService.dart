@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reservation_service/model/santemodel.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HealthSubServiceDetailPage extends StatelessWidget {
   final HealthSubService service;
@@ -11,66 +12,57 @@ class HealthSubServiceDetailPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(service.name),
-        backgroundColor: Color(0xFF00796B),
+        backgroundColor: const Color(0xFF00796B),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: Image.asset(
-                service.imagePath,
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+            Image.asset(
+              service.imagePath,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Text(
               service.name,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF00796B),
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               service.description,
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    // Fonctionnalité de réservation
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF00796B),
-                  ),
-                  child: const Text(
-                    "Réserver",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    // Fonctionnalité de contact (par exemple, appel)
-                  },
-                  child: const Text(
-                    "Contacter",
-                    style: TextStyle(color: Color(0xFF00796B)),
-                  ),
-                ),
-              ],
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.phone),
+              label: const Text("Appeler"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00796B),
+              ),
+              onPressed: () => _makePhoneCall(
+                  service.contactNumber), // Utilisation de contactNumber
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+    // ignore: deprecated_member_use
+    if (await canLaunch(launchUri.toString())) {
+      // Remplacer 'canLaunchUrl' par 'canLaunch'
+      // ignore: deprecated_member_use
+      await launch(launchUri.toString()); // Remplacer 'launchUrl' par 'launch'
+    } else {
+      throw 'Impossible d\'appeler $phoneNumber';
+    }
   }
 }

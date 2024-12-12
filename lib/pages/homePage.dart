@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:reservation_service/pages/SousService/concert/ScreenConcert.dart';
 import 'package:reservation_service/pages/SousService/restaurantPage.dart';
-import 'package:reservation_service/pages/SousService/screenNettoyage.dart';
+// import 'package:reservation_service/pages/SousService/screenNettoyage.dart';
 import 'package:reservation_service/pages/SousService/screenSante.dart';
 import 'package:reservation_service/pages/details/hotelPage.dart';
 import 'package:reservation_service/pages/details/profil.dart';
@@ -24,7 +25,7 @@ class _HomePageState extends State<HomePage> {
     {'image': 'images/concert.jpg', 'label': 'Concerts'},
     {'image': 'images/nettoyage.jpeg', 'label': 'Nettoyage'},
     {'image': 'images/sante.jpeg', 'label': 'Santé'},
-    {'image': 'images/reservations.jpeg', 'label': 'Mes Réservations'},
+    // {'image': 'images/reservations.jpeg', 'label': 'Mes Réservations'},
   ];
 
   List<Map<String, String>> filteredServices = [];
@@ -80,14 +81,15 @@ class _HomePageState extends State<HomePage> {
         page = HotelPage();
         break;
       case 'Santé':
-        page = HealthPage();
+        page = const HealthPage();
         break;
-      case 'Nettoyage':
-        page = NettoyagePage();
+      case 'Concerts': // Assurez-vous que cela correspond exactement à 'label'
+        page = const ConcertPage();
         break;
-      case 'Mes Réservations':
-        page = ReservationListPage(initialReservations: []);
-        break;
+
+      // case 'Mes Réservations':
+      //   page = ReservationListPage(initialReservations: []);
+      //   break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Vous avez sélectionné $label')),

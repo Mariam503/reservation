@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reservation_service/model/santemodel.dart';
-import 'package:reservation_service/pages/detailsServices/sousSante/healthSousService.dart';
+import 'package:reservation_service/pages/detailsServices/sousSante/emergency/emergencyScreen.dart';
 
 class HealthPage extends StatelessWidget {
   const HealthPage({Key? key}) : super(key: key);
@@ -10,85 +10,71 @@ class HealthPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Santé"),
-        backgroundColor: Color(0xFF00796B),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context); // Retour à la page précédente
-          },
-        ),
+        backgroundColor: const Color(0xFF00796B),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: healthSubServices.length,
-          itemBuilder: (context, index) {
-            final service = healthSubServices[index];
-            return _buildHealthServiceListItem(context, service);
-          },
-        ),
-      ),
-    );
-  }
-
-  // Widget pour construire chaque élément de la liste des services de santé
-  Widget _buildHealthServiceListItem(
-      BuildContext context, HealthSubService service) {
-    return InkWell(
-      onTap: () {
-        // Naviguer vers la page de détails du service de santé
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HealthSubServiceDetailPage(service),
-          ),
-        );
-      },
-      child: Card(
-        elevation: 4,
-        margin: const EdgeInsets.symmetric(vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              // Image à gauche
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.asset(
-                  service.imagePath, // Utilisation de service.imagePath
-                  height: 100, // Ajuster la hauteur de l'image
-                  width: 100, // Ajuster la largeur de l'image
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(width: 16), // Espace entre l'image et les détails
-              // Détails du service de santé à droite
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      service.name, // Utilisation de service.name
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+      body: ListView.builder(
+        itemCount: healthSubServices.length, // Nombre de services
+        itemBuilder: (context, index) {
+          final service = healthSubServices[index];
+          return Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10), // Coins arrondis
+            ),
+            margin: const EdgeInsets.symmetric(
+                vertical: 8, horizontal: 12), // Réduit les marges
+            elevation: 5, // Ombre de la carte
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 16), // Paddings pour ajuster la taille
+              leading: service.name == "Urgences"
+                  ? Icon(Icons.local_hospital,
+                      size: 50, color: Colors.red) // Icône pour Urgences
+                  : Image.asset(
+                      service.imagePath,
+                      width: 50, // Ajuster la taille de l'image
+                      height: 50,
+                      fit: BoxFit.cover,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      service.description, // Utilisation de service.description
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
+              title: Text(
+                service.name,
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight
+                        .bold), // Taille de la police pour uniformiser
               ),
-            ],
-          ),
-        ),
+              subtitle: Text(
+                service.description,
+                style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 12), // Amélioration du style de la description
+              ),
+              onTap: () {
+                if (service.name == "Urgences") {
+                  // Animation de transition vers la page des urgences
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const EmergencyPage(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        const begin = Offset(1.0, 0.0);
+                        const end = Offset.zero;
+                        const curve = Curves.easeInOut;
+                        var tween = Tween(begin: begin, end: end)
+                            .chain(CurveTween(curve: curve));
+                        var offsetAnimation = animation.drive(tween);
+                        return SlideTransition(
+                            position: offsetAnimation, child: child);
+                      },
+                    ),
+                  );
+                }
+              },
+            ),
+          );
+        },
       ),
     );
   }
