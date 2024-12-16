@@ -1,148 +1,121 @@
 import 'package:flutter/material.dart';
+import 'package:reservation_service/model/concert.dart';
+import 'package:reservation_service/pages/SousService/concert/concertDetail.dart';
 
 class ConcertPage extends StatelessWidget {
   const ConcertPage({Key? key}) : super(key: key);
 
+  // Méthode pour obtenir la liste des concerts
+  List<Concert> getConcerts() {
+    return [
+      Concert(
+        title: 'Fally Ipupa',
+        image: 'images/fally_ipupa.jpeg',
+        location: 'Conakry',
+        date: '20/12/2024',
+        description:
+            'Concert de l\'artiste Fally Ipupa, un événement à ne pas manquer!',
+        category: '',
+      ),
+      Concert(
+        title: 'SMS Tueur',
+        image: 'images/sms_tueur.jpeg',
+        location: 'Conakry',
+        date: '22/12/2024',
+        description: 'SMS Tueur sur scène pour une soirée inoubliable.',
+        category: '',
+      ),
+      Concert(
+        title: 'Tiakola',
+        image: 'images/tiakola.jpeg',
+        location: 'Conakry',
+        date: '25/12/2024',
+        description: 'Tiakola, la sensation musicale du moment!',
+        category: '',
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
+    final concerts = getConcerts();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Concerts'),
-        backgroundColor: const Color(0xFF6A1B9A),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              // Action pour ouvrir le menu de filtres
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.bookmark),
-            onPressed: () {
-              // Action pour accéder aux favoris ou réservations
-            },
-          ),
-        ],
+        backgroundColor: const Color(0xFF00796B),
       ),
-      body: ListView(
+      body: ListView.builder(
         padding: const EdgeInsets.all(16.0),
-        children: [
-          // Bannière visuelle
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              image: const DecorationImage(
-                image: AssetImage('images/concert_banner.jpg'),
-                fit: BoxFit.cover,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Liste des concerts
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 10, // Exemple : 10 concerts
-            itemBuilder: (context, index) {
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
-                child: ListTile(
-                  leading: Image.asset(
-                    'images/concert${index + 1}.jpg',
-                    width: 80,
-                    fit: BoxFit.cover,
-                  ),
-                  title: Text('Concert ${index + 1}'),
-                  subtitle: Text('Lieu : Abidjan\nDate : 20/12/2024'),
-                  trailing: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ConcertDetailPage(
-                            concertTitle: 'Concert ${index + 1}',
-                            location: 'Abidjan',
-                            date: '20/12/2024',
-                          ),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6A1B9A),
-                    ),
-                    child: const Text('Détails'),
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
+        itemCount: concerts.length,
+        itemBuilder: (context, index) {
+          final concert = concerts[index];
+          return ConcertCard(concert: concert);
+        },
       ),
     );
   }
 }
 
-class ConcertDetailPage extends StatelessWidget {
-  final String concertTitle;
-  final String location;
-  final String date;
+class ConcertCard extends StatelessWidget {
+  final Concert concert;
 
-  const ConcertDetailPage({
-    Key? key,
-    required this.concertTitle,
-    required this.location,
-    required this.date,
-  }) : super(key: key);
+  const ConcertCard({Key? key, required this.concert}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(concertTitle),
-        backgroundColor: const Color(0xFF6A1B9A),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
           children: [
-            Image.asset(
-              'images/concert_detail.jpg',
-              height: 200,
-              fit: BoxFit.cover,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              concertTitle,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF6A1B9A),
+            // Image de l'artiste
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: Image.asset(
+                concert.image,
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
               ),
             ),
-            const SizedBox(height: 10),
-            Text(
-              'Lieu : $location\nDate : $date',
-              style: const TextStyle(fontSize: 16),
+            const SizedBox(width: 16), // Espacement entre l'image et les textes
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    concert.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Lieu : ${concert.location}\nDate : ${concert.date}',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 20),
-            const Text(
-              'Description : Ce concert met en avant les meilleurs artistes de la scène musicale actuelle. Venez vivre une expérience inoubliable avec une ambiance exceptionnelle.',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // Ajouter une action pour la réservation
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ConcertDetailPage(concert: concert),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6A1B9A),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                backgroundColor: const Color(0xFF00796B),
               ),
-              child: const Text('Réserver'),
+              child: const Text(
+                'Détails',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
