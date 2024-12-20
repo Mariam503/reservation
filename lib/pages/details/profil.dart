@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import "package:cloud_firestore/cloud_firestore.dart";
+import 'package:reservation_service/LoginScreen.dart';
+import 'package:reservation_service/collectionFirebase/ueser_service.dart';
+import 'package:reservation_service/model/users.dart'; // Assurez-vous que ce modèle est importé correctement
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final UserService _userService = UserService();
 
-  String userName = '';
-  String email = '';
-  String phoneNumber = '';
-  String profileImageUrl = '';
+  UserModel? userModel;
   bool isLoading = true;
 
   @override
@@ -27,45 +27,36 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _loadUserProfile() async {
     try {
       User? user = _auth.currentUser;
-      print(user);
       if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Aucun utilisateur connecté.")),
-        );
+        _showSnackBar("Aucun utilisateur connecté.");
         return;
       }
 
-      // Récupération du document utilisateur
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      if (userDoc.exists) {
+      UserModel? userData = await _userService.getUser(user.uid);
+      if (userData != null) {
         setState(() {
-          userName = userDoc['name'] ?? 'Nom inconnu';
-          email = userDoc['email'] ?? 'Email inconnu';
-          phoneNumber = userDoc['phone'] ?? 'Téléphone inconnu';
-          profileImageUrl = userDoc['profileImageUrl'] ?? '';
-          isLoading = false; // Fin du chargement
+          userModel = userData;
+          isLoading = false;
         });
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Profil utilisateur introuvable.")),
-        );
+        _showSnackBar("Profil utilisateur introuvable.");
         setState(() {
           isLoading = false;
         });
       }
     } catch (e) {
-      debugPrint("Erreur Firestore : $e"); // Log dans la console
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur lors du chargement du profil : $e")),
-      );
+      debugPrint("Erreur lors du chargement du profil : $e");
+      _showSnackBar("Une erreur est survenue. Veuillez réessayer plus tard.");
       setState(() {
         isLoading = false;
       });
     }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
@@ -73,51 +64,58 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profil'),
-        backgroundColor: const Color(0xFF00796B),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+            tooltip: "Déconnexion",
+          ),
+        ],
       ),
       body: isLoading
-          ? const Center(
-              child:
-                  CircularProgressIndicator()) // Affichage du loader pendant le chargement
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Center(
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundImage: AssetImage('images/profile_picture.png'),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  if (profileImageUrl
-                      .isNotEmpty) // Si l'URL de l'image de profil est disponible, on l'affiche
-                    Center(
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundImage: NetworkImage(profileImageUrl),
-                      ),
-                    ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Nom : $userName',
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Email : $email',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Téléphone : $phoneNumber',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
+          ? const Center(child: CircularProgressIndicator())
+          : userModel == null
+              ? const Center(
+                  child: Text("Aucune donnée utilisateur disponible."))
+              : _buildUserProfile(userModel!),
     );
+  }
+
+  Widget _buildUserProfile(UserModel user) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 50,
+            backgroundImage: user.profileImageUrl != null &&
+                    user.profileImageUrl!.isNotEmpty
+                ? NetworkImage(
+                    user.profileImageUrl!) // Si une URL d'image est présente
+                : const AssetImage('images/profile_picture.png')
+                    as ImageProvider, // Image par défaut
+          ),
+          const SizedBox(height: 20),
+          Text("Nom : ${user.firstName}"),
+          Text("Email : ${user.email}"),
+          Text("Date de création : ${user.createdAt.toLocal()}"),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _logout() async {
+    try {
+      await _auth.signOut(); // Déconnexion de Firebase
+      // Rediriger vers la page de connexion après déconnexion
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false, // Supprime toutes les pages précédentes
+      );
+    } catch (e) {
+      debugPrint("Erreur de déconnexion : $e");
+      _showSnackBar("Une erreur est survenue lors de la déconnexion.");
+    }
   }
 }

@@ -1,0 +1,112 @@
+ Pharmacie(
+      id: "2",
+      nom: "Pharmacie B",
+      adresse: "Adresse B",
+      telephone: "987654321",
+      imageUrl: "images/pharmacie_b.jpg",
+      latitude: 45.7640,
+      longitude: 4.8357,
+      services: [
+        ServicePharmacie.Orthopedie,
+        ServicePharmacie.Beaute,
+        ServicePharmacie.ConseilMedical
+      ],
+      horaires: [
+        Horaire(
+            jour: "Lundi-Vendredi",
+            heureOuverture: "7h30",
+            heureFermeture: "19h30"),
+        Horaire(
+            jour: "Samedi", heureOuverture: "8h00", heureFermeture: "16h00"),
+        Horaire(
+            jour: "Dimanche", heureOuverture: "8h00", heureFermeture: "12h00"),
+      ],
+      estDeGarde: false,
+      rating: 4.0,
+      nombreAvis: 90,
+      medicaments: [
+        Medicament(
+          nom: "Ibuprofène",
+          description: "Anti-inflammatoire non stéroïdien",
+          imageUrl: "assets/images/ibuprofen.jpg",
+          prix: 20.00,
+        ),
+        Medicament(
+          nom: "Amoxicilline",
+          description: "Antibiotique",
+          imageUrl: "assets/images/amoxicilline.jpg",
+          prix: 10.00,
+        ),
+      ],
+    ),
+    Pharmacie(
+      id: "3",
+      nom: "Pharmacie C",
+      adresse: "Adresse C",
+      telephone: "111222333",
+      imageUrl: "assets/images/pharmacie_c.jpg",
+      latitude: 34.0522,
+      longitude: -118.2437,
+      services: [ServicePharmacie.TestCOVID, ServicePharmacie.Vaccination],
+      horaires: [
+        Horaire(
+            jour: "Lundi-Vendredi",
+            heureOuverture: "9h00",
+            heureFermeture: "18h00"),
+        Horaire(
+            jour: "Samedi", heureOuverture: "10h00", heureFermeture: "14h00"),
+        Horaire(jour: "Dimanche", heureOuverture: "Fermé", heureFermeture: ""),
+      ],
+      estDeGarde: true,
+      rating: 3.8,
+      nombreAvis: 70,
+      medicaments: [
+        Medicament(
+          nom: "Vitamine C",
+          description:
+              "Complément alimentaire pour renforcer le système immunitaire",
+          imageUrl: "assets/images/vitamine_c.jpg",
+          prix: 15.00,
+        ),
+        Medicament(
+          nom: "Oméprazole",
+          description: "Traitement des ulcères et des reflux gastriques",
+          imageUrl: "assets/images/omeprazole.jpg",
+          prix: 25.00,
+        ),
+      ],
+    ),
+    Pharmacie(
+      id: "4",
+      nom: "Pharmacie D",
+      adresse: "Adresse D",
+      telephone: "444555666",
+      imageUrl: "assets/images/pharmacie_d.jpg",
+      latitude: 51.5074,
+      longitude: -0.1278,
+      services: [ServicePharmacie.Beaute, ServicePharmacie.Orthopedie],
+      horaires: [
+        Horaire(
+            jour: "Lundi-Dimanche",
+            heureOuverture: "8h00",
+            heureFermeture: "20h00"),
+      ],
+      estDeGarde: false,
+      rating: 4.3,
+      nombreAvis: 120,
+      medicaments: [
+        Medicament(
+          nom: "Doliprane",
+          description: "Antalgique et antipyrétique",
+          imageUrl: "assets/images/doliprane.jpg",
+          prix: 45.00,
+        ),
+        Medicament(
+          nom: "Cétirizine",
+          description: "Antihistaminique pour le traitement des allergies",
+          imageUrl: "assets/images/cetirizine.jpg",
+          prix: 30.00,
+        ),
+      ],
+    ),
+  ];

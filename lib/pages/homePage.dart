@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:reservation_service/pages/SousService/concert/ScreenConcert.dart';
+import 'package:reservation_service/pages/SousService/nettoyage/screenNettoyage.dart';
 import 'package:reservation_service/pages/SousService/restaurantPage.dart';
-// import 'package:reservation_service/pages/SousService/screenNettoyage.dart';
+import 'package:reservation_service/pages/SousService/salonCoiffures/screenSalonCoiffures.dart';
+// Décommenté
 import 'package:reservation_service/pages/SousService/screenSante.dart';
 import 'package:reservation_service/pages/details/hotelPage.dart';
 import 'package:reservation_service/pages/details/profil.dart';
@@ -25,7 +27,6 @@ class _HomePageState extends State<HomePage> {
     {'image': 'images/concert.jpg', 'label': 'Concerts'},
     {'image': 'images/nettoyage.jpeg', 'label': 'Nettoyage'},
     {'image': 'images/sante.jpeg', 'label': 'Santé'},
-    // {'image': 'images/reservations.jpeg', 'label': 'Mes Réservations'},
   ];
 
   List<Map<String, String>> filteredServices = [];
@@ -57,8 +58,7 @@ class _HomePageState extends State<HomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                const ReservationListPage(initialReservations: []),
+            builder: (context) => ReservationListPage(),
           ),
         );
         break;
@@ -72,31 +72,23 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _navigateToService(String label) {
-    Widget page;
-    switch (label) {
-      case 'Restaurants':
-        page = RestaurantPage();
-        break;
-      case 'Hôtels':
-        page = HotelPage();
-        break;
-      case 'Santé':
-        page = const HealthPage();
-        break;
-      case 'Concerts': // Assurez-vous que cela correspond exactement à 'label'
-        page = const ConcertPage();
-        break;
+    final Map<String, Widget> servicePages = {
+      'Salons de coiffure': SalonsCoiffurePage(),
+      'Restaurants': RestaurantPage(),
+      'Hôtels': HotelListPage(),
+      'Santé': const HealthPage(),
+      'Concerts': const ConcertPage(),
+      'Nettoyage': CleaningPage(),
+    };
 
-      // case 'Mes Réservations':
-      //   page = ReservationListPage(initialReservations: []);
-      //   break;
-      default:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Vous avez sélectionné $label')),
-        );
-        return;
+    final page = servicePages[label];
+    if (page != null) {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Service non disponible : $label')),
+      );
     }
-    Navigator.push(context, MaterialPageRoute(builder: (context) => page));
   }
 
   @override
@@ -116,6 +108,18 @@ class _HomePageState extends State<HomePage> {
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF00796B),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              onChanged: _filterServices,
+              decoration: InputDecoration(
+                labelText: 'Rechercher un service',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
           ),

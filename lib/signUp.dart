@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:reservation_service/pages/HomePage.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -29,16 +30,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
         return;
       }
       try {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        // Créer un utilisateur avec Firebase Authentication
+        UserCredential userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
-        // Navigate to HomePage on success
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
-        );
+        // Enregistrer les informations de l'utilisateur dans Firestore
+        User? user = userCredential.user;
+        if (user != null) {
+          await FirebaseFirestore.instance
+              .collection('profiles')
+              .doc(user.uid)
+              .set({
+            'firstName': _firstNameController.text.trim(),
+            'email': _emailController.text.trim(),
+            'uid': user.uid,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+
+          // Navigate to HomePage on success
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur: ${e.toString()}')),

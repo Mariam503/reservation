@@ -11,6 +11,7 @@ class EmergencyPage extends StatefulWidget {
 
 class _EmergencyPageState extends State<EmergencyPage> {
   String? _currentLocation;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -19,6 +20,10 @@ class _EmergencyPageState extends State<EmergencyPage> {
 
   // Fonction pour obtenir la localisation
   Future<void> _getLocation() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -27,6 +32,7 @@ class _EmergencyPageState extends State<EmergencyPage> {
     if (!serviceEnabled) {
       setState(() {
         _currentLocation = "Services de localisation désactivés.";
+        _isLoading = false;
       });
       return;
     }
@@ -38,17 +44,28 @@ class _EmergencyPageState extends State<EmergencyPage> {
       if (permission == LocationPermission.denied) {
         setState(() {
           _currentLocation = "Permission de localisation refusée.";
+          _isLoading = false;
         });
         return;
       }
     }
 
-    // Obtenez la localisation actuelle
-    Position position = await Geolocator.getCurrentPosition();
-    setState(() {
-      _currentLocation =
-          "Latitude: ${position.latitude}, Longitude: ${position.longitude}";
-    });
+    try {
+      // Obtenez la localisation actuelle
+      Position position = await Geolocator.getCurrentPosition();
+      setState(() {
+        _currentLocation =
+            "Latitude: ${position.latitude}, Longitude: ${position.longitude}";
+      });
+    } catch (e) {
+      setState(() {
+        _currentLocation = "Erreur de récupération de la localisation.";
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   // Fonction pour appeler le numéro d'urgence
@@ -70,39 +87,49 @@ class _EmergencyPageState extends State<EmergencyPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const Text(
-              "Appel d'urgence",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _getLocation,
-              child: const Text("Obtenir ma localisation"),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _currentLocation ?? "Localisation non obtenue",
-              style: const TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                // Appel au numéro d'urgence, ici '112' (ajustez selon le pays)
-                _callEmergency(
-                    "115"); // Remplacer par le numéro d'urgence local
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00796B),
+        child: Center(
+          child: Column(
+            children: [
+              const Text(
+                "Appel d'urgence",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              child: const Text(
-                "Appeler les Urgences",
-                style: TextStyle(color: Colors.white),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _getLocation,
+                child: _isLoading
+                    ? const CircularProgressIndicator()
+                    : const Text("Obtenir ma localisation"),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                _currentLocation ?? "Localisation non obtenue",
+                style: const TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  _callEmergency(
+                      "115"); // Remplacer par le numéro d'urgence local
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00796B),
+                ),
+                child: const Text(
+                  "Appeler les Urgences",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _callEmergency("115"); // Numéro d'urgence
+        },
+        backgroundColor: const Color(0xFF00796B),
+        child: const Icon(Icons.phone, color: Colors.white),
       ),
     );
   }

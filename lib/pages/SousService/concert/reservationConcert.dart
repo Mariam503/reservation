@@ -92,8 +92,7 @@ class _ReservationPageState extends State<ReservationPage> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  const ReservationListPage(initialReservations: []),
+              builder: (context) => ReservationListPage(),
             ),
           );
         }

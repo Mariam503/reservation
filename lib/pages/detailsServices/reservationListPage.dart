@@ -1,25 +1,20 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:reservation_service/model/reservationList.dart'; // Assurez-vous que Reservation est bien défini
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ReservationListPage extends StatefulWidget {
-  final List<String> initialReservations;
-
-  const ReservationListPage({Key? key, required this.initialReservations})
-      : super(key: key);
-
   @override
   _ReservationListPageState createState() => _ReservationListPageState();
 }
 
 class _ReservationListPageState extends State<ReservationListPage> {
-  late Future<List<Reservation>> _reservations;
-  String? _filterService;
+  late Stream<QuerySnapshot> _reservationsStream;
 
   @override
   void initState() {
     super.initState();
-    _reservations = _getReservations();
+    // Récupération en temps réel des réservations depuis Firestore
+    _reservationsStream =
+        FirebaseFirestore.instance.collection('reservations').snapshots();
   }
 
   @override
@@ -27,232 +22,158 @@ class _ReservationListPageState extends State<ReservationListPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Liste des réservations"),
-        backgroundColor: Color(0xFF00796B),
+        backgroundColor: const Color(0xFF00796B),
       ),
-      body: Column(
-        children: [
-          _buildFilterDropdown(),
-          Expanded(
-            child: FutureBuilder<List<Reservation>>(
-              future: _reservations,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Erreur: ${snapshot.error}'));
-                } else {
-                  final reservations = snapshot.data ?? [];
-                  if (reservations.isEmpty) {
-                    return const Center(
-                        child: Text('Aucune réservation trouvée.'));
-                  }
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _reservationsStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Erreur: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('Aucune réservation trouvée.'));
+          }
 
-                  return RefreshIndicator(
-                    onRefresh: _refreshReservations,
-                    child: ListView.builder(
-                      itemCount: reservations.length,
-                      itemBuilder: (context, index) {
-                        final reservation = reservations[index];
-                        return Dismissible(
-                          key: Key(reservation.id),
-                          direction: DismissDirection.endToStart,
-                          onDismissed: (direction) {
-                            _deleteReservation(reservation);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      "Réservation supprimée avec succès")),
-                            );
-                          },
-                          child: Card(
-                            margin: const EdgeInsets.symmetric(
-                                vertical: 8, horizontal: 16),
-                            child: ListTile(
-                              leading: Icon(
-                                reservation.service == 'Concerts'
-                                    ? Icons.music_note
-                                    : Icons.bookmark,
-                                color: reservation.service == 'Concerts'
-                                    ? Colors.blue
-                                    : Colors.green,
-                              ),
-                              title: Text(reservation.service),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Date: ${reservation.date}'),
-                                  Text('Heure: ${reservation.time}'),
-                                  if (reservation.service == 'Concerts')
-                                    Row(
-                                      children: [
-                                        Icon(Icons.music_note,
-                                            color: Colors.blue),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'Type de billet: ${reservation.details}',
-                                          style: TextStyle(color: Colors.blue),
-                                        ),
-                                      ],
-                                    ),
-                                  Text('Nom: ${reservation.name}'),
-                                  Text('Téléphone: ${reservation.phone}'),
-                                ],
-                              ),
-                              dense: true,
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (reservation.service != 'Concerts')
-                                    IconButton(
-                                      icon: const Icon(Icons.delete,
-                                          color: Colors.red),
-                                      onPressed: () =>
-                                          _confirmDeleteReservation(
-                                              reservation),
-                                    ),
-                                  if (reservation.service == 'Concerts')
-                                    IconButton(
-                                      icon: const Icon(Icons.delete,
-                                          color: Colors.grey),
-                                      onPressed: null,
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                }
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+          final reservations = snapshot.data!.docs;
 
-  Widget _buildFilterDropdown() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: DropdownButton<String>(
-        value: _filterService,
-        hint: const Text("Filtrer par service"),
-        onChanged: (value) {
-          setState(() {
-            _filterService = value;
-            _reservations =
-                _getReservations(); // Rafraîchir les réservations avec le filtre appliqué
-          });
-        },
-        items:
-            ['Concerts', 'Restaurants', 'Hôtels', 'Autre'].map((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
+          return ListView.builder(
+            itemCount: reservations.length,
+            itemBuilder: (context, index) {
+              final data = reservations[index].data() as Map<String, dynamic>;
+              return _buildReservationCard(data, reservations[index].id);
+            },
           );
-        }).toList(),
+        },
       ),
     );
   }
 
-  Future<List<Reservation>> _getReservations() async {
-    return await _getReservationsFromDatabase();
+  Widget _buildReservationCard(Map<String, dynamic> data, String documentId) {
+    final String serviceName = data['serviceName'] ?? 'Service';
+    final String userName = data['userName'] ?? 'Utilisateur';
+    final String reservationDate = data['reservationDate'] ?? '';
+    final String? ticketType =
+        data['ticketType']; // Type de ticket pour les concerts
+    final String? phoneNumber = data['phoneNumber'];
+    final String? paymentMethod = data['paymentMethod'];
+    final int? numberOfGuests = data['numberOfGuests'] is String
+        ? int.tryParse(data['numberOfGuests'] ?? '')
+        : data['numberOfGuests'];
+    final String? reservationStatus =
+        data['status']; // Statut de la réservation
+
+    // Ajouter les informations spécifiques au salon
+    final String salonName = data['salonName'] ?? 'Salon';
+    final String salonDescription =
+        data['salonDescription'] ?? 'Description non disponible';
+
+    // Définir un style de texte réutilisable
+    final TextStyle subTextStyle = TextStyle(fontSize: 14, color: Colors.grey);
+
+    // Map pour associer les services à leurs icônes
+    final serviceIcons = {
+      'Concerts': Icons.music_note,
+      'Restaurants': Icons.restaurant,
+      'Salons': Icons.business_center,
+    };
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      elevation: 4,
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        leading: Icon(
+          serviceIcons[serviceName] ?? Icons.event,
+          color: Colors.teal,
+        ),
+        title: Text(
+          serviceName,
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Réservé par: $userName', style: subTextStyle),
+            Text('Date de réservation: $reservationDate', style: subTextStyle),
+            if (reservationStatus != null)
+              Text('Statut: $reservationStatus',
+                  style: TextStyle(fontSize: 14, color: Colors.blue)),
+            if (serviceName == 'Concerts') ...[
+              Text('Type de ticket: $ticketType', style: subTextStyle),
+            ],
+            if (serviceName == 'Restaurants') ...[
+              Text('Nombre de places: $numberOfGuests', style: subTextStyle),
+            ],
+            if (serviceName == 'Salons') ...[
+              Text('Salon: $salonName', style: subTextStyle),
+              Text('Description: $salonDescription', style: subTextStyle),
+            ],
+            if (phoneNumber != null)
+              Text('Numéro de téléphone: $phoneNumber', style: subTextStyle),
+            if (paymentMethod != null)
+              Text('Méthode de paiement: $paymentMethod', style: subTextStyle),
+          ],
+        ),
+        trailing: IconButton(
+          icon: Icon(Icons.cancel, color: Colors.red),
+          onPressed: () {
+            _showCancelDialog(context, documentId);
+          },
+          tooltip: 'Annuler la réservation',
+        ),
+      ),
+    );
   }
 
-  Future<List<Reservation>> _getReservationsFromDatabase() async {
-    try {
-      final snapshot =
-          await FirebaseFirestore.instance.collection('reservations').get();
-      if (snapshot.docs.isEmpty) {
-        return [];
-      }
-
-      final reservations = snapshot.docs.map((doc) {
-        final data = doc.data();
-        return Reservation(
-          service: data['service'] ?? '',
-          date: data['date'] ?? '',
-          time: data['time'] ?? '',
-          name: data['name'] ?? '',
-          phone: data['phone'] ?? '',
-          details: data['details'] ?? '',
-          id: doc.id,
-        );
-      }).toList();
-
-      reservations.sort((a, b) {
-        int serviceComparison = a.service.compareTo(b.service);
-        if (serviceComparison != 0) return serviceComparison;
-        return a.date.compareTo(b.date);
-      });
-
-      // Filtrage des réservations si un filtre est appliqué
-      if (_filterService != null && _filterService!.isNotEmpty) {
-        return reservations
-            .where((reservation) => reservation.service == _filterService)
-            .toList();
-      }
-
-      return reservations;
-    } catch (e) {
-      print(
-          'Erreur lors de la récupération des réservations depuis Firestore: $e');
-      return [];
-    }
-  }
-
-  Future<void> _refreshReservations() async {
-    List<Reservation> updatedReservations = await _getReservations();
-    setState(() {
-      _reservations = Future.value(updatedReservations);
-    });
-  }
-
-  Future<void> _confirmDeleteReservation(Reservation reservation) async {
-    final shouldDelete = await showDialog<bool>(
+  // Méthode pour afficher un dialogue de confirmation d'annulation
+  void _showCancelDialog(BuildContext context, String documentId) {
+    showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Alerte'),
-          content:
-              const Text('Voulez-vous vraiment supprimer cette réservation ?'),
-          actions: [
+          title: Text('Annuler la réservation'),
+          content: Text('Êtes-vous sûr de vouloir annuler cette réservation ?'),
+          actions: <Widget>[
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Annuler'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer la boîte de dialogue
+              },
+              child: Text('Non'),
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child:
-                  const Text('Supprimer', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                _cancelReservation(context, documentId);
+                Navigator.of(context).pop(); // Fermer la boîte de dialogue
+              },
+              child: Text('Oui'),
             ),
           ],
         );
       },
     );
-
-    if (shouldDelete == true) {
-      await _deleteReservation(reservation);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Réservation supprimée avec succès")),
-      );
-    }
   }
 
-  Future<void> _deleteReservation(Reservation reservation) async {
+  // Méthode pour annuler la réservation
+  void _cancelReservation(BuildContext context, String documentId) async {
     try {
-      // Supprimer la réservation de Firestore
       await FirebaseFirestore.instance
           .collection('reservations')
-          .doc(reservation.id)
+          .doc(documentId)
           .delete();
-
-      // Rafraîchir la liste des réservations après suppression
-      _refreshReservations();
+      // Mise à jour du stream pour refléter l'annulation
+      setState(() {
+        _reservationsStream =
+            FirebaseFirestore.instance.collection('reservations').snapshots();
+      });
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Réservation annulée')));
     } catch (e) {
-      print('Erreur lors de la suppression de la réservation: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de l\'annulation: $e')));
     }
   }
 }

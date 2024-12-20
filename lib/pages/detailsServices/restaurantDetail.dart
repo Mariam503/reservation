@@ -112,8 +112,8 @@ class RestaurantDetailsPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            ReservationPage(restaurantName: restaurantName),
+                        builder: (context) => RestaurantReservationPage(
+                            restaurantName: restaurantName),
                       ),
                     );
                   },
